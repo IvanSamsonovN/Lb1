@@ -1,0 +1,77 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def load_data(filename):
+    data = np.loadtxt(filename, delimiter=',')
+    X = data[:, :-1]  # Все столбцы, кроме последнего
+    y = data[:, -1]   # Последний столбец
+    return X, y
+
+def feature_normalize(X):
+    mu = np.mean(X, axis=0)  # Средние значения по столбцам
+    sigma = np.std(X, axis=0)  # Стандартные отклонения по столбцам
+    X_norm = (X - mu) / sigma  # Нормализация
+    return X_norm, mu, sigma
+
+def compute_cost(X, y, theta):
+    m = len(y)
+    J = (1 / (2 * m)) * np.sum(np.square(X @ theta - y))
+    return J
+
+def gradient_descent(X, y, theta, alpha, num_iters):
+    m = len(y)
+    J_history = np.zeros(num_iters)
+    
+    for i in range(num_iters):
+        theta = theta - (alpha / m) * (X.T @ (X @ theta - y))
+        J_history[i] = compute_cost(X, y, theta)
+
+    return theta, J_history
+
+def normal_equation(X, y):
+    return np.linalg.inv(X.T @ X) @ X.T @ y
+
+def main():
+    # 1. Загрузка данных
+    X, y = load_data('ex1data2.txt')
+    
+    # Нормализация данных
+    X_norm, mu, sigma = feature_normalize(X)
+    
+    # Добавляем столбец единиц для вычисления theta
+    m = len(y)
+    X_b = np.c_[np.ones((m, 1)), X_norm]  # Добавляем x0 = 1 к каждому примеру
+
+    # 2. Градиентный спуск
+    initial_theta = np.zeros(X_b.shape[1])
+    alpha_values = [0.01, 0.03, 0.1, 0.3]
+    num_iters = 400
+
+    for alpha in alpha_values:
+        theta, J_history = gradient_descent(X_b, y, initial_theta, alpha, num_iters)
+        plt.plot(J_history, label=f'alpha = {alpha}')
+
+    plt.xlabel('Итерации')
+    plt.ylabel('Функция стоимости')
+    plt.title('Зависимость функции стоимости от итераций')
+    plt.legend()
+    plt.show()
+
+    # Предсказание стоимости дома
+    # Пример: площадь 1650, этажи 3
+    new_data = np.array([[1650, 3]])
+    new_data_norm = (new_data - mu) / sigma  # Нормализуем новые данные
+    new_data_b = np.c_[np.ones((new_data_norm.shape[0], 1)), new_data_norm]  # Добавляем столбец единиц
+    price = new_data_b @ theta
+    print(f"Предсказанная стоимость дома (градиентный спуск): {price[0]}")
+
+    # 3. Нормальные уравнения
+    X_b_no_norm = np.c_[np.ones((m, 1)), X]  # Добавляем столбец единиц без нормализации
+    theta_normal = normal_equation(X_b_no_norm, y)
+    
+    # Предсказание стоимости дома с помощью нормальных уравнений
+    price_normal = new_data_b @ theta_normal
+    print(f"Предсказанная стоимость дома (нормальные уравнения): {price_normal[0]}")
+
+if __name__ == "__main__":
+    main()
