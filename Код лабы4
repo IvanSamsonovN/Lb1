@@ -1,0 +1,71 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize
+
+def load_data(filename):
+    data = np.loadtxt(filename, delimiter=',')
+    X = data[:, :2]  # Первые два столбца
+    y = data[:, 2]   # Третий столбец
+    return X, y
+
+def sigmoid(z):
+    g = 1 / (1 + np.exp(-z))  # Логистическая функция
+    return g
+
+def cost_function(theta, X, y):
+    m = len(y)
+    h = sigmoid(X @ theta)  # Гипотеза
+    J = (-1/m) * (y.T @ np.log(h) + (1 - y).T @ np.log(1 - h))  # Функция стоимости
+    return J
+
+def gradient_function(theta, X, y):
+    m = len(y)
+    h = sigmoid(X @ theta)
+    grad = (1/m) * (X.T @ (h - y))  # Градиент
+    return grad
+
+def predict(theta, X):
+    probabilities = sigmoid(X @ theta)
+    return (probabilities >= 0.5).astype(int)  # Классификация
+
+def main():
+    # 1. Загрузка данных
+    X, y = load_data('ex2data1.txt')
+    m = len(y)
+    
+    # Добавляем столбец единиц
+    X_b = np.c_[np.ones((m, 1)), X]  # X с добавленным столбцом единиц
+
+    # Отображение данных
+    plt.scatter(X[y == 0][:, 0], X[y == 0][:, 1], color='red', label='Not Admitted')
+    plt.scatter(X[y == 1][:, 0], X[y == 1][:, 1], color='blue', label='Admitted')
+    plt.xlabel('Exam 1 Score')
+    plt.ylabel('Exam 2 Score')
+    plt.legend()
+    plt.show()
+
+    # 2. Функция стоимости и градиент
+    initial_theta = np.zeros(X_b.shape[1])
+    cost = cost_function(initial_theta, X_b, y)
+    grad = gradient_function(initial_theta, X_b, y)
+    print(f'Initial Cost: {cost}')
+    print(f'Initial Gradient: {grad}')
+
+    # 3. Обучение логистической регрессии
+    min_res = minimize(fun=cost_function, x0=initial_theta, args=(X_b, y), 
+                       jac=gradient_function, method='BFGS')
+    theta_optimized = min_res.x
+    print(f'Optimized Theta: {theta_optimized}')
+
+    # 4. Предсказание значений
+    predictions = predict(theta_optimized, X_b)
+    accuracy = np.mean(predictions == y) * 100
+    print(f'Accuracy: {accuracy}%')
+
+    # Пример предсказания
+    new_exam_scores = np.array([1, 45, 85])  # Столбец единиц + оценки
+    prob = sigmoid(new_exam_scores.dot(theta_optimized))
+    print(f'Probability of admission for scores 45 and 85: {prob}')
+
+if __name__ == "__main__":
+    main()
