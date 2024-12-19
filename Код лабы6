@@ -1,0 +1,45 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def display_data(X):
+    m, n = X.shape
+    example_width = int(np.round(np.sqrt(n)))
+    example_height = n // example_width
+
+    # Вычисляем количество примеров
+    display_rows = int(np.floor(np.sqrt(m)))
+    display_cols = int(np.ceil(m / display_rows))
+
+    # Создаем пустое изображение
+    pad = 1
+    display_array = -np.ones((pad + display_rows * (example_height + pad),
+                               pad + display_cols * (example_width + pad)))
+
+    curr_ex = 0
+    for j in range(display_rows):
+        for i in range(display_cols):
+            if curr_ex >= m:
+                break
+            # Получаем границы для примера
+            max_val = np.max(np.abs(X[curr_ex, :]))
+            display_array[pad + j * (example_height + pad): pad + j * (example_height + pad) + example_height,
+                          pad + i * (example_width + pad): pad + i * (example_width + pad) + example_width] = \
+                X[curr_ex, :].reshape(example_height, example_width) / max_val
+            curr_ex += 1
+
+    plt.imshow(display_array, cmap='gray')
+    plt.axis('off')
+    plt.show()
+
+def main():
+    # Загружаем данные
+    data = np.load('ex3data1.npy')
+    X = data['X']  # Матрица изображений
+    y = data['y']  # Вектор классов
+
+    # Отображаем случайные 100 изображений
+    rand_indices = np.random.choice(X.shape[0], 100, replace=False)
+    display_data(X[rand_indices, :])
+
+if __name__ == "__main__":
+    main()
