@@ -1,0 +1,34 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def display_data(X, width, height, el_width, el_height):
+    m, n = X.shape
+    display_array = -np.ones((pad + height * (el_height + pad),
+                               pad + width * (el_width + pad)))
+
+    curr_ex = 0
+    for j in range(height):
+        for i in range(width):
+            if curr_ex >= m:
+                break
+            display_array[pad + j * (el_height + pad): pad + j * (el_height + pad) + el_height,
+                          pad + i * (el_width + pad): pad + i * (el_width + pad) + el_width] = \
+                X[curr_ex, :].reshape(el_height, el_width) / 255.0  # Нормализация
+            curr_ex += 1
+
+    plt.imshow(display_array, cmap='gray')
+    plt.axis('off')
+    plt.show()
+
+def main():
+    # Загружаем данные
+    data = np.load('ex3data1.npy')
+    X = data['X']  # Матрица изображений
+    y = data['y']  # Вектор классов
+
+    # Отображаем случайные 100 изображений
+    rand_indices = np.random.choice(X.shape[0], 100, replace=False)
+    display_data(X[rand_indices, :], width=10, height=10, el_width=20, el_height=20)
+
+if __name__ == "__main__":
+    main()
