@@ -1,0 +1,66 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def load_data(filename):
+    data = np.loadtxt(filename, delimiter=',')
+    X = data[:, 0]  # Количество жителей (в десятках тысяч)
+    y = data[:, 1]  # Среднемесячный доход (в десятках тысяч долларов)
+    return X, y
+
+def plot_data(X, y):
+    plt.scatter(X, y, color='blue', marker='o', label='Обучающие данные')
+    plt.xlabel('Количество жителей (десятки тысяч)')
+    plt.ylabel('Среднемесячный доход (десятки тысяч долларов)')
+    plt.title('График обучающей выборки')
+    plt.legend()
+    plt.show()
+
+def compute_cost(X, y, theta):
+    m = len(y)  # Количество примеров
+    J = (1 / (2 * m)) * np.sum(np.square(X @ theta - y))  # Функция стоимости
+    return J
+
+def gradient_descent(X, y, theta, alpha, num_iters):
+    m = len(y)  # Количество примеров
+    for _ in range(num_iters):
+        theta = theta - (alpha / m) * (X.T @ (X @ theta - y))  # Обновление theta
+    return theta
+
+def main():
+    # 1. Загрузка и отображение данных
+    X, y = load_data('ex1data1.txt')
+    plot_data(X, y)
+
+    # Добавляем столбец единиц для вычисления theta
+    m = len(y)
+    X_b = np.c_[np.ones((m, 1)), X]  # Добавляем x0 = 1 к каждому примеру
+
+    # 2. Функция стоимости
+    initial_theta = np.array([0, 0])
+    cost = compute_cost(X_b, y, initial_theta)
+    print(f"Начальная стоимость: {cost}")
+
+    # 3. Градиентный спуск
+    alpha = 0.01  # Скорость обучения
+    num_iters = 1500  # Количество итераций
+    theta = gradient_descent(X_b, y, initial_theta, alpha, num_iters)
+    print(f"Найденные параметры theta: {theta}")
+
+    # Визуализация линейной регрессии
+    plt.scatter(X, y, color='blue', marker='o', label='Обучающие данные')
+    plt.plot(X, X_b @ theta, color='red', label='Линия регрессии')
+    plt.xlabel('Количество жителей (десятки тысяч)')
+    plt.ylabel('Среднемесячный доход (десятки тысяч долларов)')
+    plt.title('Линейная регрессия')
+    plt.legend()
+    plt.show()
+
+    # 4. Предсказание
+    # Пример: предсказание дохода для городов с населением 10 и 12 десятков тысяч
+    populations = np.array([10, 12])
+    X_new = np.c_[np.ones((populations.shape[0], 1)), populations]  # Добавляем столбец единиц
+    predictions = X_new @ theta
+    print(f"Предсказания дохода для населения {populations}: {predictions}")
+
+if __name__ == "__main__":
+    main()
